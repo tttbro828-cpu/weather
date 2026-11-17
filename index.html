@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="ru"><head><meta charset="utf-8"><title>Нижнеудинск — погода</title>
+<meta name="description" content="Погода в Нижнеудинске и других городах: прогноз на 10 дней, штормовые предупреждения, график температуры, компас ветра, одежда по слоям и сколько можно быть на морозе.">
+<meta property="og:title" content="Погода Нижнеудинск — живой прогноз"><meta property="og:description" content="Реальная погода, прогноз на 10 дней, предупреждения и советы по одежде."><meta property="og:type" content="website">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<style>
+:root{color-scheme:dark;--tx:#f4f8ff;--mu:#b9c6dc;--card:rgba(10,18,36,.55);--bd:rgba(255,255,255,.16);box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+*{box-sizing:border-box}html{scroll-padding-top:env(safe-area-inset-top,0px)}
+body{margin:0;background:#0b1424;color:var(--tx);font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;min-height:100vh}
+#bg{position:fixed;inset:0;width:100%;height:100%;z-index:0}
+main{position:relative;z-index:1;max-width:760px;margin:0 auto;padding:18px 14px 60px}
+h1{text-align:center;font-size:clamp(34px,9vw,58px);margin:18px 0 0;letter-spacing:.02em;text-shadow:0 2px 18px rgba(0,0,0,.5)}
+.sub{text-align:center;color:var(--mu);font-size:14px;margin:4px 0 0}
+.hero{text-align:center;margin:10px 0 18px}
+.ico{font-size:84px;line-height:1;filter:drop-shadow(0 6px 14px rgba(0,0,0,.4));animation:fl 4s ease-in-out infinite}
+@keyframes fl{50%{transform:translateY(-8px)}}
+.t{font-size:clamp(64px,18vw,104px);font-weight:200;line-height:1}
+.d{color:var(--mu)}
+.card{background:var(--card);border:1px solid var(--bd);border-radius:20px;padding:16px;margin:12px 0;backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px)}
+.card h2{font-size:15px;margin:0 0 10px;color:var(--mu);font-weight:600;text-transform:uppercase;letter-spacing:.06em}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(110px,1fr));gap:10px}
+.m{background:rgba(255,255,255,.07);border-radius:14px;padding:10px;text-align:center}.m b{display:block;font-size:20px}.m span{font-size:12px;color:var(--mu)}
+.al{border-radius:14px;padding:12px 14px;margin:8px 0;font-size:15px;border:1px solid;animation:pu 2s infinite}
+.al.ok{background:rgba(60,200,120,.15);border-color:rgba(60,200,120,.5);animation:none}
+.al.w{background:rgba(255,196,0,.17);border-color:#ffc400}
+.al.s{background:rgba(255,120,30,.22);border-color:#ff7a1e}
+.al.c{background:rgba(255,40,60,.28);border-color:#ff2840}
+@keyframes pu{50%{box-shadow:0 0 18px rgba(255,80,60,.55)}}
+svg text{fill:var(--mu);font-size:11px}
+#tip{position:absolute;pointer-events:none;background:rgba(0,0,0,.75);padding:4px 8px;border-radius:8px;font-size:12px;display:none}
+.rs{padding:9px 12px;background:rgba(10,18,36,.8);border:1px solid var(--bd);border-radius:10px;margin-top:4px;cursor:pointer;text-align:left}#q{width:min(320px,90%);padding:10px 14px;border-radius:12px;border:1px solid var(--bd);background:rgba(10,18,36,.55);color:#fff;font-size:15px}#res{max-width:320px;margin:0 auto}
+button{background:linear-gradient(135deg,#4f8cff,#8a5cff);color:#fff;border:0;border-radius:12px;padding:11px 16px;font-size:15px;cursor:pointer}
+button:disabled{opacity:.6}
+#ai,#sky{white-space:pre-wrap;line-height:1.5;margin-top:10px}
+.layers div{padding:8px 0;border-bottom:1px solid var(--bd)}.layers div:last-child{border:0}
+.big{font-size:26px;font-weight:600}
+#note{font-size:12px;color:var(--mu);text-align:center;margin-top:6px}
+</style></head><body>
+<canvas id="bg"></canvas>
+<main>
+<h1 id="h">Нижнеудинск</h1>
+<p class="sub" id="clock">…</p>
+<div style="text-align:center;margin:8px 0"><input id="q" placeholder="🔍 Другой город" autocomplete="off"><div id="res"></div></div>
+<div class="hero"><div class="ico" id="ico">⏳</div><div class="t" id="temp">–</div><div class="d" id="desc">Загружаю погоду…</div><div id="note"></div></div>
+
+<div class="card"><h2>⚠️ Штормовые предупреждения</h2><div id="alerts"></div></div>
+
+<div class="card"><h2>Сейчас</h2><div class="grid" id="stats"></div></div>
+
+<div class="card"><h2>Температура на 24 часа</h2><div style="position:relative"><svg id="chart" viewBox="0 0 700 220" width="100%"></svg><div id="tip"></div></div><div class="d" style="font-size:12px">Проведите пальцем или мышью по графику. Синие столбики — вероятность осадков.</div></div>
+
+<div class="card"><h2>📅 Прогноз на 10 дней</h2><div id="days"></div></div>
+<div class="card"><h2>🧭 Компас ветра</h2>
+<svg id="comp" viewBox="-110 -110 220 220" width="240" style="display:block;margin:0 auto;touch-action:none;cursor:grab">
+<circle r="100" fill="rgba(255,255,255,.06)" stroke="rgba(255,255,255,.3)"/><circle r="70" fill="none" stroke="rgba(255,255,255,.12)"/>
+<text x="0" y="-84" text-anchor="middle" style="fill:#fff;font-size:14px">С</text><text x="88" y="5" text-anchor="middle" style="fill:#fff;font-size:14px">В</text><text x="0" y="94" text-anchor="middle" style="fill:#fff;font-size:14px">Ю</text><text x="-88" y="5" text-anchor="middle" style="fill:#fff;font-size:14px">З</text>
+<g id="needle" style="transition:transform 1.2s cubic-bezier(.3,1.4,.5,1)"><path d="M0 -62 L9 8 L0 0 L-9 8Z" fill="#6ec1ff"/><path d="M0 62 L9 -8 L0 0 L-9 -8Z" fill="rgba(255,255,255,.25)"/></g>
+<g id="probe"><line x1="0" y1="0" x2="0" y2="-98" stroke="#ffc400" stroke-width="2" stroke-dasharray="4 3"/><circle cy="-98" r="7" fill="#ffc400"/></g>
+<circle r="5" fill="#fff"/></svg>
+<div style="text-align:center" id="compTxt"></div><div class="d" style="text-align:center;font-size:12px">Крутите жёлтый маркер — узнаете, как далеко он от реального ветра.</div></div>
+
+<div class="card"><h2>⏱ Сколько можно быть на улице</h2><div id="safe"></div></div>
+<div class="card"><h2>🧥 Одежда по слоям</h2><div class="layers" id="layers"></div></div>
+
+<div class="card"><h2>🏃 Что делать сегодня</h2><div id="acts" style="line-height:1.9"></div></div>
+<div class="card"><h2>🤖 Анализ дня</h2><div id="local"></div><button id="aiBtn" style="margin-top:10px">Разобрать день</button><div id="ai"></div></div>
+<div class="card"><h2>🔭 Астрономический радар</h2><div class="grid" id="astro"></div><div id="sunbar"></div><button id="skyBtn" style="margin-top:10px">Можно ли смотреть на небо?</button><div id="sky"></div></div>
+</main>
+<script>
+const $=id=>document.getElementById(id);
+let LAT=54.9,LON=99.03,CITY='Нижнеудинск',OFF=28800;
+let W=null,demo=false;
+const WMO=c=>c===0?['☀️','Ясно','clear']:c<=2?['⛅','Переменная облачность','cloud']:c===3?['☁️','Пасмурно','cloud']:c<=48?['🌫️','Туман','fog']:c<=57?['🌦️','Морось','rain']:c<=67?['🌧️','Дождь','rain']:c<=77?['❄️','Снег','snow']:c<=82?['🌧️','Ливень','rain']:c<=86?['🌨️','Снегопад','snow']:['⛈️','Гроза','storm'];
+const dirName=d=>['С','СВ','В','ЮВ','Ю','ЮЗ','З','СЗ'][Math.round(d/45)%8];
+const dirFull=d=>['северный','северо-восточный','восточный','юго-восточный','южный','юго-западный','западный','северо-западный'][Math.round(d/45)%8];
+function irk(){const n=new Date();return new Date(n.getTime()+n.getTimezoneOffset()*6e4+OFF*1e3)}
+function demoData(){demo=true;const h=irk().getHours(),H=[];for(let i=0;i<24;i++)H.push({t:(h+i)%24,temp:-9+4*Math.sin((h+i-9)/24*6.28),p:i>8&&i<14?55:10,w:3+Math.sin(i/4)});
+return{cur:{temperature_2m:-8,apparent_temperature:-14,relative_humidity_2m:78,weather_code:71,cloud_cover:80,pressure_msl:1018,wind_speed_10m:4,wind_direction_10m:225,wind_gusts_10m:9,is_day:1,precipitation:0},H,sr:'08:10',ss:'17:05',uv:1}}
+let seq=0;async function load(){const my=++seq;
+ try{const c=new AbortController();setTimeout(()=>c.abort(),12000);
+ const U=`https://api.open-meteo.com/v1/forecast?latitude=${LAT}&longitude=${LON}&current=temperature_2m,apparent_temperature,relative_humidity_2m,precipitation,weather_code,cloud_cover,pressure_msl,wind_speed_10m,wind_direction_10m,wind_gusts_10m,is_day&hourly=temperature_2m,precipitation_probability,wind_speed_10m&daily=sunrise,sunset,uv_index_max,temperature_2m_max,temperature_2m_min,weather_code,precipitation_probability_max&timezone=auto&forecast_days=10&wind_speed_unit=ms`;const r=await getJ(U);
+ const j=r;OFF=j.utc_offset_seconds;if(my!==seq)return;const now=irk().getHours();const H=[];
+ for(let i=now;i<now+24;i++)H.push({t:i%24,temp:j.hourly.temperature_2m[i],p:j.hourly.precipitation_probability[i]||0,w:j.hourly.wind_speed_10m[i]});
+ W={cur:j.current,D:j.daily,H,sr:j.daily.sunrise[0].slice(11),ss:j.daily.sunset[0].slice(11),uv:j.daily.uv_index_max[0]};
+ }catch(e){$('note').textContent=W?'🟡 Не удалось обновить, показаны последние реальные данные. Пробую снова…':'⏳ Загружаю реальные данные, пробую снова…';setTimeout(load,3000);return}
+ render();
+}
+const moon=()=>{const p=((Date.now()/864e5-10962.76)%29.530588+29.530588)%29.530588;return{p,ill:Math.round((1-Math.cos(p/29.53*6.283))/2*100),n:['🌑 Новолуние','🌒 Растущий серп','🌓 Первая четверть','🌔 Растущая','🌕 Полнолуние','🌖 Убывающая','🌗 Последняя четверть','🌘 Убывающий серп'][Math.round(p/29.53*8)%8]}};
+function hazards(){const c=W.cur,out=[],T=c.temperature_2m,A=c.apparent_temperature,code=c.weather_code,g=c.wind_gusts_10m;
+ if(code>=95)out.push(['c','⛈️ КРИТИЧНО: гроза. Не выходите на открытые места, держитесь подальше от деревьев.']);
+ if(A<=-40)out.push(['c','🥶 КРИТИЧНО: экстремальный холод. Обморожение за минуты, на улицу только по необходимости.']);
+ else if(A<=-30)out.push(['s','🥶 Сильный мороз: закройте лицо и руки, не оставайтесь долго на улице.']);
+ else if(A<=-20)out.push(['w','❄️ Морозно: тёплая одежда обязательна.']);
+ if(A>=38)out.push(['c','🔥 КРИТИЧНО: опасная жара. Вода, тень, минимум нагрузок.']);else if(A>=32)out.push(['s','☀️ Сильная жара: пейте больше воды, избегайте солнца днём.']);
+ if(g>=25)out.push(['c','🌪 КРИТИЧНО: ураганные порывы '+Math.round(g)+' м/с. Возможны обрывы проводов и падение деревьев.']);else if(g>=17)out.push(['s','💨 Сильный ветер: порывы до '+Math.round(g)+' м/с.']);else if(g>=12)out.push(['w','💨 Порывистый ветер до '+Math.round(g)+' м/с.']);
+ if(T>-3&&T<2&&(c.precipitation>0||c.relative_humidity_2m>85||WMO(code)[2]==='rain'||WMO(code)[2]==='fog'))out.push(['s','🧊 Риск гололёда: температура около нуля и сырость. Дороги скользкие.']);
+ if(WMO(code)[2]==='fog')out.push(['w','🌫️ Туман: плохая видимость на дорогах.']);
+ if(code>=75&&code<=86)out.push(['w','🌨️ Сильный снегопад: возможны заносы.']);
+ if(c.pressure_msl<990)out.push(['w','📉 Низкое давление: возможна метеозависимость.']);
+ if(!out.length)out.push(['ok','✅ Опасных явлений нет. Спокойный день.']);return out}
+function safe(){const A=W.cur.apparent_temperature;let mins,why;
+ if(A<=-55)[mins,why]=['меньше 2 мин','экстремальная опасность'];else if(A<=-48)[mins,why]=['2–5 мин','очень высокая'];else if(A<=-40)[mins,why]=['5–10 мин','высокая'];else if(A<=-28)[mins,why]=['10–30 мин','заметная'];else if(A<=-15)[mins,why]=['более 30 мин','умеренная при хорошей одежде'];else if(A>=41)[mins,why]=['до 15 мин','риск теплового удара'];else if(A>=38)[mins,why]=['около 30 мин','высокий риск перегрева'];else if(A>=32)[mins,why]=['до 90 мин','перегрев при нагрузке'];else [mins,why]=['без ограничений','риска нет'];
+ $('safe').innerHTML=`<div class="big">${mins}</div><div class="d">Ощущаемая ${Math.round(A)}°. Опасность: ${why}. Время до обморожения открытой кожи / перегрева без защиты.</div>`}
+function layers(){const A=W.cur.apparent_temperature,r=['rain','storm'].includes(WMO(W.cur.weather_code)[2]);let L;
+ if(A<=-30)L=['Бельё: термобельё плотное','Средний: флис + шерстяной свитер','Верх: пуховик до колена или парка','Голова и руки: балаклава, шапка-ушанка, варежки','Ноги: шерстяные носки, валенки/зимние сапоги'];
+ else if(A<=-15)L=['Бельё: термобельё','Средний: флис','Верх: зимняя куртка/пуховик','Голова и руки: шапка, шарф, перчатки','Ноги: тёплые зимние ботинки'];
+ else if(A<=0)L=['Бельё: хлопок или лёгкое термо','Средний: свитер','Верх: тёплая куртка','Аксессуары: шапка и перчатки'];
+ else if(A<=12)L=['Бельё: футболка','Средний: кофта или худи','Верх: ветровка/лёгкая куртка'];
+ else if(A<=25)L=['Одежда: футболка и лёгкие брюки','При необходимости: тонкая кофта на вечер'];
+ else L=['Одежда: лёгкая светлая, дышащая','Головной убор и солнцезащитные очки','Вода с собой, SPF 30+'];
+ if(r)L.push('Дождь: непромокаемая куртка и зонт');
+ $('layers').innerHTML=L.map(x=>`<div>${x}</div>`).join('')}
+function astro(){const m=moon(),c=W.cur,night=!c.is_day,cl=c.cloud_cover;let s=100-cl;if(m.ill>60)s-=15;if(!night)s=Math.min(s,5);if(['snow','rain','storm','fog'].includes(WMO(c.weather_code)[2]))s-=30;s=Math.max(0,Math.min(100,Math.round(s)));
+ const v=s>=70?'🟢 Отлично':s>=40?'🟡 Так себе':'🔴 Плохо';
+ $('astro').innerHTML=[['Видимость неба',s+'%'],['Вердикт',v],['Облачность',cl+'%'],['Луна',m.ill+'%'],['Фаза',m.n],['Рассвет / закат',W.sr+' / '+W.ss]].map(([a,b])=>`<div class="m"><b>${b}</b><span>${a}</span></div>`).join('');return{s,m,night}}
+function ctx(){const c=W.cur,a=astro();return `${CITY}, ${demo?'демо-данные':'реальные данные'}. Время ${irk().getHours()}:00 (UTC+8). Температура ${c.temperature_2m}°C, ощущается ${c.apparent_temperature}°C, влажность ${c.relative_humidity_2m}%, ${WMO(c.weather_code)[1]}, облачность ${c.cloud_cover}%, давление ${Math.round(c.pressure_msl*.75)} мм рт. ст., ветер ${c.wind_speed_10m} м/с (${dirFull(c.wind_direction_10m)}), порывы ${c.wind_gusts_10m}. Ночь: ${a.night}. Луна ${a.m.ill}% (${a.m.n}). Ближайшие 24ч температура от ${Math.round(Math.min(...W.H.map(h=>h.temp)))} до ${Math.round(Math.max(...W.H.map(h=>h.temp)))}°C, макс. вероятность осадков ${Math.max(...W.H.map(h=>h.p))}%.`}
+async function ask(btn,out,prompt,fb){let s=null;try{s=typeof claude!=='undefined'?await claude.use('sample'):null}catch(e){}if(!s){out.textContent=fb();return}
+ btn.disabled=true;out.textContent='Думаю…';try{await s(ctx()+'\n'+prompt,{modelTier:'quick',cache:false,onText:({text})=>{out.textContent=text}})}catch(e){out.textContent=fb()}btn.disabled=false}
+function chart(){const H=W.H,svg=$('chart'),x0=36,x1=690,y0=14,y1=180,mn=Math.floor(Math.min(...H.map(h=>h.temp)))-1,mx=Math.ceil(Math.max(...H.map(h=>h.temp)))+1;
+ const X=i=>x0+i*(x1-x0)/(H.length-1),Y=v=>y1-(v-mn)/(mx-mn)*(y1-y0);
+ let d=`M${X(0)},${Y(H[0].temp)}`;for(let i=0;i<H.length-1;i++){const p0=H[Math.max(i-1,0)],p1=H[i],p2=H[i+1],p3=H[Math.min(i+2,H.length-1)];d+=` C${X(i)+(X(i+1)-X(Math.max(i-1,0)))/6},${Y(p1.temp)+(Y(p2.temp)-Y(p0.temp))/6} ${X(i+1)-(X(Math.min(i+2,H.length-1))-X(i))/6},${Y(p2.temp)-(Y(p3.temp)-Y(p1.temp))/6} ${X(i+1)},${Y(p2.temp)}`}
+ let g=`<defs><linearGradient id="gr" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#ffb347" stop-opacity=".45"/><stop offset="1" stop-color="#ffb347" stop-opacity="0"/></linearGradient></defs>`;
+ g+=H.map((h,i)=>`<rect x="${X(i)-6}" y="${y1-h.p*.4}" width="12" height="${h.p*.4}" rx="3" fill="#4fa8ff" opacity=".35"/>`).join('');
+ g+=`<path d="${d} L${x1},${y1} L${x0},${y1}Z" fill="url(#gr)"/><path id="ln" d="${d}" fill="none" stroke="#ffb347" stroke-width="3" stroke-linecap="round" stroke-dasharray="2000" stroke-dashoffset="2000"><animate attributeName="stroke-dashoffset" to="0" dur="1.6s" fill="freeze"/></path>`;
+ g+=[mn,(mn+mx)/2,mx].map(v=>`<text x="2" y="${Y(v)+4}">${Math.round(v)}°</text>`).join('');
+ g+=H.map((h,i)=>i%4===0?`<text x="${X(i)}" y="205" text-anchor="middle">${String(h.t).padStart(2,'0')}:00</text>`:'').join('');
+ g+=`<line id="cur" y1="${y0}" y2="${y1}" stroke="#fff" opacity="0" /><circle id="dot" r="6" fill="#fff" opacity="0"/>`;svg.innerHTML=g;
+ const mv=e=>{const r=svg.getBoundingClientRect(),px=(e.clientX-r.left)/r.width*700,i=Math.max(0,Math.min(H.length-1,Math.round((px-x0)/(x1-x0)*(H.length-1))));const h=H[i];
+ $('cur').setAttribute('x1',X(i));$('cur').setAttribute('x2',X(i));$('cur').setAttribute('opacity',.5);const dt=$('dot');dt.setAttribute('cx',X(i));dt.setAttribute('cy',Y(h.temp));dt.setAttribute('opacity',1);
+ const t=$('tip');t.style.display='block';t.textContent=`${String(h.t).padStart(2,'0')}:00 · ${Math.round(h.temp)}° · осадки ${h.p}%`;t.style.left=Math.min(r.width-150,Math.max(0,X(i)/700*r.width-60))+'px';t.style.top='-6px'};
+ svg.onpointermove=mv;svg.onpointerdown=mv;svg.onpointerleave=()=>{$('tip').style.display='none'}}
+function compass(){const c=W.cur,a=c.wind_direction_10m;$('needle').style.transform=`rotate(${a+180}deg)`;
+ let pr=a+90;const upd=()=>{$('probe').setAttribute('transform',`rotate(${pr})`);const df=Math.abs(((pr-a)%360+540)%360-180);$('compTxt').innerHTML=`<div class="big">${dirName(a)} · ${c.wind_speed_10m} м/с</div><div class="d">Ветер дует с ${dirFull(a)}а направления, порывы до ${c.wind_gusts_10m} м/с.<br>Маркер: ${dirName(((pr%360)+360)%360)}, разница с ветром ${Math.round(df)}° ${df<30?'— вы почти в лицо ветру':df>150?'— ветер в спину':'— боковой ветер'}</div>`};upd();
+ const s=$('comp');let drag=false;const mv=e=>{if(!drag)return;const r=s.getBoundingClientRect();pr=Math.atan2(e.clientY-r.top-r.height/2,e.clientX-r.left-r.width/2)*180/Math.PI+90;upd()};
+ s.onpointerdown=e=>{drag=true;s.setPointerCapture(e.pointerId);mv(e)};s.onpointermove=mv;s.onpointerup=()=>drag=false}
+function render(){const c=W.cur,[ic,ds,ty]=WMO(c.weather_code);
+ $('ico').textContent=c.is_day?ic:(c.weather_code===0?'🌙':c.weather_code<=2?'☁️':ic);$('temp').textContent=Math.round(c.temperature_2m)+'°';$('desc').textContent=ds+' · ощущается '+Math.round(c.apparent_temperature)+'°';
+ $('note').textContent=demo?'⚠️ Живой источник недоступен — показаны ДЕМО-данные':'🟢 Живые данные Open-Meteo, обновлено '+irk().toTimeString().slice(0,5);
+ $('alerts').innerHTML=hazards().map(([k,t])=>`<div class="al ${k}">${t}</div>`).join('');
+ $('stats').innerHTML=[['Влажность',c.relative_humidity_2m+'%'],['Давление',Math.round(c.pressure_msl*.75)+' мм'],['Ветер',c.wind_speed_10m+' м/с'],['Облачность',c.cloud_cover+'%'],['УФ-индекс',Math.round(W.uv)],['Осадки',c.precipitation+' мм']].map(([a,b])=>`<div class="m"><b>${b}</b><span>${a}</span></div>`).join('');
+ chart();compass();safe();layers();astro();acts();sunbar();days();
+ $('local').innerHTML=hazards().map(([k,t])=>`<div>• ${t}</div>`).join('');
+ scene.type=ty;scene.hot=c.apparent_temperature>=30;scene.cold=c.apparent_temperature<=-20;scene.cloud=c.cloud_cover;}
+function localDay(){const c=W.cur,H=W.H,mn=Math.round(Math.min(...H.map(h=>h.temp))),mx=Math.round(Math.max(...H.map(h=>h.temp))),pp=Math.max(...H.map(h=>h.p)),L=[];
+L.push(`Сутки: от ${mn}° до ${mx}°, ${WMO(c.weather_code)[1].toLowerCase()}.`);
+const tr=H[H.length-1].temp-H[0].temp;L.push(Math.abs(tr)<2?'Температура почти не меняется.':tr>0?`К концу суток потеплеет примерно на ${Math.round(tr)}°.`:`К концу суток похолодает примерно на ${Math.round(-tr)}°.`);
+if(pp>=50)L.push(`Осадки вероятны (до ${pp}%): возьмите зонт или капюшон.`);
+hazards().forEach(h=>{if(h[0]!=='ok')L.push(h[1])});
+const p=c.pressure_msl*.75;L.push(p<735?'Давление пониженное: возможны вялость и головная боль.':p>765?'Давление повышенное: метеозависимым стоит поберечься.':'Давление в норме.');return L.join('\n')}
+function localSky(){const a=astro(),m=a.m;if(!a.night)return `Сейчас день, звёзд не видно. Луна ${m.ill}% (${m.n}). Выходите после захода солнца (${W.ss}).`;
+let t=a.s>=70?`🟢 Небо ясное, смотреть можно: видны звёзды и Луна.`:a.s>=40?`🟡 Облака мешают: звёзды видны местами, ждите просветов.`:`🔴 Смотреть нечего: небо закрыто облаками или осадками.`;
+if(a.s>=40)t+=m.ill>60?`\nЛуна яркая (${m.ill}%), слабые звёзды потеряются в её свете.`:`\nЛуна тусклая (${m.ill}%), для звёзд условия хорошие.`;
+return t+`\nФаза: ${m.n}. Облачность ${W.cur.cloud_cover}%.`}
+function acts(){const c=W.cur,A=c.apparent_temperature,ty=WMO(c.weather_code)[2],g=c.wind_gusts_10m,wet=['rain','storm'].includes(ty),L=[];
+L.push([!wet&&A>-20&&A<30&&g<15?'✅':'⚠️','Прогулка',!wet&&A>-20&&A<30&&g<15?'подходящие условия':'лучше сократить']);
+L.push([!wet&&A>-15&&A<22&&c.wind_speed_10m<10?'✅':'⛔','Пробежка',!wet&&A>-15&&A<22&&c.wind_speed_10m<10?'можно, разогрейтесь':'не лучший день']);
+L.push([A<=-3&&A>-22&&!wet?'✅':'⚠️','Лыжи и коньки',A<=-3&&A>-22&&!wet?'снег держит, мороз терпимый':'условия так себе']);
+L.push([ty==='fog'||ty==='snow'||ty==='storm'||(c.temperature_2m>-3&&c.temperature_2m<2)?'⚠️':'✅','Дорога на машине',ty==='fog'||ty==='snow'||ty==='storm'||(c.temperature_2m>-3&&c.temperature_2m<2)?'осторожно: скользко или плохая видимость':'без особых рисков']);
+L.push([A<=-30?'⛔':'✅','Дети на улице',A<=-30?'при таком морозе лучше остаться дома':'с тёплой одеждой можно']);
+$('acts').innerHTML=L.map(([i,a,b])=>`<div>${i} <b>${a}</b> — ${b}</div>`).join('')}
+function sunbar(){const f=s=>{const[a,b]=s.split(':');return +a+b/60},n=irk(),x=n.getHours()+n.getMinutes()/60,a=f(W.sr),b=f(W.ss),p=Math.max(0,Math.min(1,(x-a)/(b-a))),len=b-a;
+$('sunbar').innerHTML=`<div style="margin-top:14px"><div style="display:flex;justify-content:space-between;font-size:13px" class="d"><span>🌅 ${W.sr}</span><span>Световой день ${Math.floor(len)} ч ${Math.round((len%1)*60)} мин</span><span>🌇 ${W.ss}</span></div><div style="height:10px;border-radius:6px;background:rgba(255,255,255,.12);margin-top:6px;position:relative"><div style="width:${p*100}%;height:100%;border-radius:6px;background:linear-gradient(90deg,#ffb347,#ffe27a)"></div><div style="position:absolute;left:calc(${p*100}% - 9px);top:-6px;font-size:18px">${x>=a&&x<=b?'☀️':'🌙'}</div></div></div>`}
+async function getJ(u){const P=[x=>x,x=>'https://corsproxy.io/?url='+encodeURIComponent(x),x=>'https://api.allorigins.win/raw?url='+encodeURIComponent(x)];let e;for(const p of P){const c=new AbortController(),t=setTimeout(()=>c.abort(),7000);try{const r=await fetch(p(u),{signal:c.signal});if(r.ok){const j=await r.json();if(j&&!j.error){clearTimeout(t);return j}}}catch(x){e=x}clearTimeout(t)}throw e||0}
+function days(){const D=W.D,mn=Math.min(...D.temperature_2m_min),mx=Math.max(...D.temperature_2m_max);
+$('days').innerHTML=D.time.map((t,i)=>{const dt=new Date(t+'T12:00:00'),a=D.temperature_2m_min[i],b=D.temperature_2m_max[i],l=(a-mn)/(mx-mn||1)*100,r=(b-mn)/(mx-mn||1)*100;
+return `<div style="display:grid;grid-template-columns:62px 28px 38px 1fr 38px 50px;gap:6px;align-items:center;padding:7px 0;border-bottom:1px solid var(--bd);font-size:14px"><span>${i?dt.toLocaleDateString('ru-RU',{weekday:'short',day:'numeric'}):'Сегодня'}</span><span>${WMO(D.weather_code[i])[0]}</span><span class="d">${Math.round(a)}°</span><div style="height:6px;border-radius:4px;background:rgba(255,255,255,.12);position:relative"><div style="position:absolute;left:${l}%;width:${Math.max(r-l,4)}%;height:100%;border-radius:4px;background:linear-gradient(90deg,#6ec1ff,#ffb347)"></div></div><span>${Math.round(b)}°</span><span class="d" style="font-size:12px">💧${D.precipitation_probability_max[i]||0}%</span></div>`}).join('')}
+function setCity(n,la,lo){CITY=n;LAT=la;LON=lo;try{localStorage.setItem('city',JSON.stringify([n,la,lo]))}catch(e){}$('h').textContent=n;document.title=n+' — погода';$('res').textContent='';$('q').value='';W=null;$('ico').textContent='⏳';$('temp').textContent='–';$('desc').textContent='Загружаю погоду…';load()}
+let tm;$('q').oninput=()=>{clearTimeout(tm);const v=$('q').value.trim(),box=$('res');if(v.length<2){box.textContent='';return}tm=setTimeout(async()=>{try{const j=await getJ('https://geocoding-api.open-meteo.com/v1/search?count=6&language=ru&name='+encodeURIComponent(v));box.textContent='';(j.results||[]).forEach(c=>{const d=document.createElement('div');d.className='rs';d.textContent=[c.name,c.admin1,c.country].filter(Boolean).join(', ');d.onclick=()=>setCity(c.name,c.latitude,c.longitude);box.appendChild(d)});if(!box.children.length)box.textContent='Не найдено'}catch(e){box.textContent='Поиск недоступен, попробуйте позже'}},350)};
+$('aiBtn').onclick=()=>ask($('aiBtn'),$('ai'),'Ты метеоаналитик. Дай краткий анализ дня простым языком на русском (до 6 строк): что будет в течение суток, риски (гололёд, мороз, ветер, давление), совет что делать. Без вступлений.',localDay);
+$('skyBtn').onclick=()=>ask($('skyBtn'),$('sky'),'Ты астроном-любитель. Скажи на русском (до 5 строк), можно ли сегодня смотреть на небо: что именно увидим (Луна, звёзды, планеты), лучшее время, что учесть. Если пасмурно или день — честно скажи, что смотреть нечего.',localSky);
+setInterval(()=>{const t=irk();$('clock').textContent=t.toLocaleDateString('ru-RU',{weekday:'long',day:'numeric',month:'long'})+' · '+t.toTimeString().slice(0,5)+' (местное)'},1000);
+/* фон */
+const scene={type:'clear',hot:false,cold:false,cloud:0},cv=$('bg'),cx=cv.getContext('2d');let w,h,P=[],stars=[],fl=0;
+function rs(){w=cv.width=innerWidth;h=cv.height=innerHeight;stars=Array.from({length:90},()=>({x:Math.random()*w,y:Math.random()*h*.7,r:Math.random()*1.4+.3,p:Math.random()*6}))}rs();addEventListener('resize',rs);
+const lerp=(a,b,t)=>a+(b-a)*t,K=[[0,[8,14,40],[20,30,70]],[5,[20,30,70],[90,70,110]],[8,[255,150,90],[90,140,210]],[12,[60,150,235],[150,205,250]],[17,[80,130,210],[255,170,110]],[20,[40,40,100],[220,100,90]],[22,[10,16,44],[30,36,80]],[24,[8,14,40],[20,30,70]]];
+function sky(){const t=irk(),x=t.getHours()+t.getMinutes()/60;let i=0;while(K[i+1][0]<x)i++;const f=(x-K[i][0])/(K[i+1][0]-K[i][0]);const m=(a,b)=>a.map((v,j)=>lerp(v,b[j],f));let a=m(K[i][1],K[i+1][1]),b=m(K[i][2],K[i+1][2]);
+ const dim=['rain','storm','fog'].includes(scene.type)?.5:scene.cloud>70?.7:1,gr=(c)=>{const g=(c[0]+c[1]+c[2])/3;return c.map(v=>lerp(g,v,dim)*(dim<1?.8:1))};a=gr(a);b=gr(b);
+ if(scene.hot){a=[a[0]+60,a[1]+20,a[2]-20];b=[255,Math.min(b[1]+40,200),90]}
+ const g=cx.createLinearGradient(0,0,0,h);g.addColorStop(0,`rgb(${a})`);g.addColorStop(1,`rgb(${b})`);cx.fillStyle=g;cx.fillRect(0,0,w,h);
+ const night=x<6||x>20.5;if(night&&dim>.6)stars.forEach(s=>{cx.globalAlpha=.4+.6*Math.abs(Math.sin(s.p+=.02));cx.fillStyle='#fff';cx.beginPath();cx.arc(s.x,s.y,s.r,0,6.3);cx.fill()});cx.globalAlpha=1;
+ const ang=((x-6)/14)*Math.PI,sx=w*(.1+.8*((x-6)/14)),sy=h*.75-Math.sin(ang)*h*.55;if(x>6&&x<20&&dim>.4){cx.fillStyle=scene.hot?'rgba(255,230,120,1)':'rgba(255,240,180,.95)';cx.shadowColor='#ffd966';cx.shadowBlur=scene.hot?90:50;cx.beginPath();cx.arc(sx,sy,scene.hot?48:32,0,6.3);cx.fill();cx.shadowBlur=0}
+ else if(night){const mx=w*.75,my=h*.18;cx.fillStyle='rgba(240,244,255,.9)';cx.shadowColor='#cfe0ff';cx.shadowBlur=30;cx.beginPath();cx.arc(mx,my,22,0,6.3);cx.fill();cx.shadowBlur=0}}
+function cl(t){const n=scene.cloud/100;cx.fillStyle=`rgba(${['rain','storm'].includes(scene.type)?'60,70,90':'255,255,255'},${.1+.12*n})`;for(let i=0;i<5;i++){const x=((t*.01*(1+i*.4)+i*220)%(w+400))-200,y=60+i*55;for(let k=0;k<4;k++){cx.beginPath();cx.ellipse(x+k*60,y+(k%2)*14,70,28,0,0,6.3);cx.fill()}}}
+function spawn(){const ty=scene.type,n=ty==='storm'?4:ty==='rain'?3:ty==='snow'?2:0;for(let i=0;i<n;i++)P.push({x:Math.random()*w,y:-10,v:ty==='snow'?1+Math.random()*1.5:12+Math.random()*8,s:Math.random()*2+1,sn:ty==='snow'});if(scene.cold&&ty!=='snow'&&Math.random()<.2)P.push({x:Math.random()*w,y:-10,v:.6+Math.random(),s:Math.random()*2+1,sn:true});if(P.length>900)P.splice(0,100)}
+function frame(t){sky();if(scene.cloud>30||['rain','storm','snow','fog'].includes(scene.type))cl(t);spawn();
+ P=P.filter(p=>p.y<h+10);P.forEach(p=>{if(p.sn){p.x+=Math.sin(p.y/40+p.s)*.6;p.y+=p.v;cx.fillStyle='rgba(255,255,255,.85)';cx.beginPath();cx.arc(p.x,p.y,p.s,0,6.3);cx.fill()}else{p.y+=p.v;p.x-=2;cx.strokeStyle='rgba(170,200,255,.55)';cx.beginPath();cx.moveTo(p.x,p.y);cx.lineTo(p.x+2,p.y-p.v*1.2);cx.stroke()}});
+ if(scene.type==='storm'){if(Math.random()<.006)fl=1;if(fl>0){cx.fillStyle=`rgba(255,255,255,${fl*.5})`;cx.fillRect(0,0,w,h);fl-=.07}}
+ if(scene.type==='fog'){const g=cx.createLinearGradient(0,h*.4,0,h);g.addColorStop(0,'rgba(220,230,240,0)');g.addColorStop(1,'rgba(220,230,240,.5)');cx.fillStyle=g;cx.fillRect(0,0,w,h)}
+ if(scene.hot){cx.fillStyle=`rgba(255,120,40,${.08+.04*Math.sin(t/400)})`;cx.fillRect(0,0,w,h)}
+ requestAnimationFrame(frame)}
+requestAnimationFrame(frame);
+try{const s=JSON.parse(localStorage.getItem('city')||'null');if(s){CITY=s[0];LAT=s[1];LON=s[2];$('h').textContent=CITY;document.title=CITY+' — погода'}}catch(e){}
+load();setInterval(load,600000);
+</script></body></html>
