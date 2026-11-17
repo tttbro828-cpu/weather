@@ -1,4 +1,4 @@
-Name: update-weather
+name: update-weather
 on:
   schedule:
     - cron: '*/10 * * * *'
